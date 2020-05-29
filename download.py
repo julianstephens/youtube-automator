@@ -6,7 +6,7 @@ class YoutubeDownloader:
     
     playlist = ""
     folderPath = ""
-    path = os.getcwd()
+    dest = ""
     
     def getArgs(self, playlistIndex, folderIndex):
         """Get playlist url and download destination
@@ -21,18 +21,26 @@ class YoutubeDownloader:
             print("Provide a YouTube video/playlist link") 
             sys.exit()
         try: 
-            self.folderPath = self.path + '/' + str(sys.argv[folderIndex]) + '/'
+            self.folderPath = str(sys.argv[folderIndex])
+            print("Saving to: " + self.folderPath + '%(title)s.%(ext)s')
         except Exception:
             print("Saving to current directory.")
 
-    
+        user_input = input("Is this a playlist? (Y/n)")
+        
+        if (user_input.lower() == 'y'):
+            self.dest = self.folderPath + '%(playlist_title)s/%(title)s.%(ext)s'
+        else: 
+            self.dest = self.folderPath + '%(title)s.%(ext)s'
+ 
+
     def downloadAudio(self): 
         """Download specified video or playlist and extract audio with youtube-dl
         """
         options = {
             'format': 'bestaudio/best',
             'quiet': True,
-            'outtmpl': self.folderPath + '%(playlist_title)s/%(title)s.%(ext)s',
+            'outtmpl': self.dest,
             'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
                 'preferredcodec': 'mp3',
@@ -50,4 +58,4 @@ if __name__ == "__main__":
 
     downloader.getArgs(1, 2)
     downloader.downloadAudio()
-        
+    print("Download complete!")
