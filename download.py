@@ -1,38 +1,37 @@
-import sys
+#! /usr/bin/python3
+
+import argparse
 import os
 import youtube_dl
 
 class YoutubeDownloader:
-    
-    playlist = ""
-    folderPath = ""
+    url = ""
     dest = ""
-    
-    def getArgs(self, playlistIndex, folderIndex):
-        """Get playlist url and download destination
-
-        Arguments:
-            playlistIndex {int} -- Argument index for playlist url
-            folderIndex {int} -- Argument index for download directory
+    parser = ""
+    defaultPath = os.getcwd() + '/'
+     
+    def createArgParser(self):
+        """Create ArgumentParser object to handle command line args
         """
-        try: 
-            self.playlist = str(sys.argv[playlistIndex])
-        except Exception:
-            print("Provide a YouTube video/playlist link") 
-            sys.exit()
-        try: 
-            self.folderPath = str(sys.argv[folderIndex])
-            print("Saving to: " + self.folderPath + '%(title)s.%(ext)s')
-        except Exception:
-            print("Saving to current directory.")
+        self.parser = argparse.ArgumentParser(description='Extract the audio from online video(s).')
+        self.parser.add_argument('url', '-u', type=str, required=True, help='The link to your video or playlist.')
+        self.parser.add_argument('folderPath', '-f', '-d', type=str, nargs='?', 
+                                 const=self.defaultPath, help='The path to the audio destination directory.')
+        self.parser.add_argument('--playlist', '--p', type=lambda x: (str(x).lower() in ['true', '1', 'yes', 'y']), 
+                                 nargs='?', default=False, help='Is this a playlist?')
+     
+    def getArgs(self):
+        """Parse arguements and assign to globals
+        """
+        args = self.parser.parse_args()
+        self.url = args.url 
 
-        user_input = input("Is this a playlist? (Y/n)")
-        
-        if (user_input.lower() == 'y'):
-            self.dest = self.folderPath + '%(playlist_title)s/%(title)s.%(ext)s'
+        if args.playlist == True:
+            self.dest = args.folderPath + '%(playlist_title)s/%(title)s.%(ext)s'
         else: 
-            self.dest = self.folderPath + '%(title)s.%(ext)s'
- 
+            self.dest = args.folderPath + '%(title)s.%(ext)s'
+
+        print(vars(args))
 
     def downloadAudio(self): 
         """Download specified video or playlist and extract audio with youtube-dl
@@ -49,13 +48,13 @@ class YoutubeDownloader:
         }
 
         with youtube_dl.YoutubeDL(options) as ydl:
-            ydl.download([self.playlist])
-
+            ydl.download([self.url])
 
 
 if __name__ == "__main__": 
     downloader = YoutubeDownloader()
+    downloader.createArgParser()
 
-    downloader.getArgs(1, 2)
-    downloader.downloadAudio()
-    print("Download complete!")
+    downloader.getArgs()
+    #downloader.downloadAudio()
+    #print("Download complete!")
